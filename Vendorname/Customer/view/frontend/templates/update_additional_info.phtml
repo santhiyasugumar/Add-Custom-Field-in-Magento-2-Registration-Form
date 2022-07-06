@@ -1,0 +1,131 @@
+
+<?php
+$obm = \Magento\Framework\App\ObjectManager::getInstance();
+
+$customerSession = $obm->get('Magento\Customer\Model\Session');
+
+if($customerSession->isLoggedIn()) {
+  $customerId =  $customerSession->getCustomer()->getId();
+  /* load customer collection by Customer id */
+  $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+  $customerRepository = $objectManager->get('Magento\Customer\Api\CustomerRepositoryInterface');
+  $customer = $customerRepository->getById($customerId);
+
+  /*get customer custom attribute value by customer attribute code */
+  $gst_number = $customer->getCustomAttribute('gst_number')->getValue();
+  $contact_number = $customer->getCustomAttribute('contact_number')->getValue();
+  $designation = $customer->getCustomAttribute('designation')->getValue();
+  $company_name = $customer->getCustomAttribute('company_name')->getValue();
+  // $interested_area = $customer->getCustomAttribute('interested_area')->getValue();
+  // file_put_contents("san.txt",json_encode($customer->getAttribute('interested_area')));
+}
+
+?>
+<div class="field gst_number">
+    <label class="label" for="gst_number">
+      <span><?= $block->escapeHtml(__('GST/VAT No')) ?></span>
+    </label>
+    <div class="control">
+       <input type="text" name="gst_number" id="gst_number" value="<?php echo $gst_number;?>" title="<?= $block->escapeHtmlAttr(__('GST/VAT No')) ?>" class="input-text" data-validate="{required:true}">
+    </div>
+</div>
+
+<div class="field contact_number">
+  <label class="label" for="contact_number">
+    <span><?= $block->escapeHtml(__('Contact Number')) ?></span>
+  </label>
+  <div class="control">
+    <input type="text" name="contact_number" id="contact_number" value="<?php echo $contact_number;?>" title="<?= $block->escapeHtmlAttr(__('GST/VAT No')) ?>" class="input-text" data-validate="{required:true}">
+  </div>
+</div>
+
+<div class="field contact_number">
+  <label class="label" for="designation">
+    <span><?= $block->escapeHtml(__('Designation')) ?></span>
+  </label>
+  <div class="control">
+    <input type="text" name="designation" id="designation" value="<?php echo $designation;?>" title="<?= $block->escapeHtmlAttr(__('Designation')) ?>" class="input-text" data-validate="{required:true}">
+  </div>
+</div>
+
+<div class="field company_name">
+  <label class="label" for="company_name">
+    <span><?= $block->escapeHtml(__('Company / Institiute Name')) ?></span>
+  </label>
+  <div class="control">
+    <input type="text" name="company_name" id="company_name" value="<?php echo $company_name;?>" title="<?= $block->escapeHtmlAttr(__('Company / Institiute Name')) ?>" class="input-text" data-validate="{required:true}">
+  </div>
+</div>
+
+<div class="field countryid required">
+    <label class="label" for="countryid">
+      <span><?= $block->escapeHtml(__('Country')) ?></span>
+    </label>
+  <div class="control">
+    <field name="countryid" formElement="select">   
+        <formElements>
+          <?= $block->getCountries();?>
+        </formElements>
+    </field>
+  </div>
+</div>
+
+<div class="field stateid required">
+    <label class="label" for="stateid">
+      <span><?= $block->escapeHtml(__('State/Province')) ?></span>
+    </label>
+  <div class="control">
+    <field name="stateid" formElement="select">   
+        <formElements>
+          <?= $block->getRegion();?>
+        </formElements>
+    </field>
+  </div>
+</div>
+<div class="field interested_area">
+    <label class="label" for="interested_area">
+      <span><?= $block->escapeHtml(__('Interested Area (Select atleast 1 item)')) ?></span>
+    </label>    
+    <div class="control">
+      <select id="interested_area" name="interested_area" multiple="multiple">
+        <option value="microbiology">Microbiology</option>
+        <option value="cell_biology">Cell Biology</option>
+        <option value="molecular_biology">Molecular Biology</option>
+        <option value="hydroponics_soilless_farming">Hydroponics soilless farming</option>
+        <option value="plant_tissue_culture">Plant Tissue culture</option>
+        <option value="chemicals">Chemicals & Biochemicals</option>
+        <option value="lab_consumables">Lab Consumables & Instruments</option>
+      </select>
+    </div>
+</div>
+
+<div class="field agree">    
+    <div class="control">
+       <input type="checkbox" value="1" name="is_agree" id="is_agree"> 
+       <label for="is_agree" class="label">I agree to the </label><a href="www.google.com" download>Terms & Conditions</a> 
+    </div>
+</div>
+<script>
+  require(['jquery', 'mage/multiselect'], function($){
+    $('#multiselect').multiselect2({selectedValues: []});
+    $(document).on('change','#country',function() {
+      var param = 'country='+$('#country').val();
+      $.ajax({
+          showLoader: true,
+          url: '<?php /* @escapeNotVerified */ echo $block->getCountryAction(); ?>',
+          data: param,
+          type: "GET",
+          dataType: 'json'
+      }).done(function (data) {
+          $('#state').empty();
+          //data.value has the array of regions
+          $(data.value).each(function()
+          {
+            var option = $('<option />');
+            option.attr('value', this.region_id).text(this.name);
+            $('#state').append(option);
+          });
+      });
+  });
+});
+</script>
